@@ -1,20 +1,26 @@
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 
 public class Client {
     private String nome;
     private String colore;
     private Socket s;
-
+    private BufferedReader lettore;           // lettore del messaggio del client
+    private BufferedWriter scrittore;          // scrittore del messaggio per il client
+    private boolean connesso = true;
+    
     public Client(String nomeDefault, String coloreDefault) {
         this.nome = nomeDefault;
         this.colore = coloreDefault;
     }
-
+    
     public void connetti(String nomeServer, int portaServer){
         try {
             s = new Socket(nomeServer, portaServer);
             System.out.println("C1 - Connessione con il server instaurata (fase di connessione con il server)");
+            // scrittore = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+            // lettore = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            connesso = true;
         } catch (UnknownHostException ex) {
             System.err.println("C1 - Host non risolto");
             ex.printStackTrace();
@@ -23,11 +29,73 @@ public class Client {
             ex.printStackTrace();
         }
     }
+    
+    public void scrivi(){
+        BufferedReader lettoreMessaggio;                 // buffer per l'input da tastiera
+        String messaggio;                                // il messaggio da mandare al server
 
-    public void scrivi(){}
+        try {
+            // richiesta dell'inserimento del messaggio all'utente
+            lettoreMessaggio = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("Inserisci un messaggio per il server: ");
+            messaggio = lettoreMessaggio.readLine();
+            
+            // trasmissione del messaggio al server
+            scrittore = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+            scrittore.write(messaggio);
+            scrittore.newLine();
+            scrittore.flush();
+            
+            if (messaggio.equalsIgnoreCase("chiudi")) {
+                connesso = false;
+                chiudi();
+            }
+            
+        } catch (IOException ex) {
+            System.err.println("Errore nella lettura da tastiera.");
+            ex.printStackTrace();
+        }
+    }
 
-    public void leggi(){}
+    public void leggi(){
+        if(connesso){
+            String messaggioServer;         // messaggio ricevuto dal server
+                
+            try{
+                // lettura della risposta del server
+                lettore = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                messaggioServer = lettore.readLine();
 
-    public void chiudi(){}
+                // gestione dei casi in base al contenuto del messaggio
+                if(messaggioServer.equals("chiudi")){
+                    System.out.println("Il server ha chiuso la comunicazione con il client.");
+                    chiudi();
+                    connesso = false;
+                }else if(messaggioServer.equals("termina")){
+                    System.out.println("Il server è stato terminato");
+                    chiudi();
+                    connesso = false;
+                }else{
+                    System.out.println("Dal server: " + messaggioServer);
+                }
+    
+            }catch(IOException ex){
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public void chiudi(){
+        System.out.println("Chiusura della comunicazione effettuata e client terminato.");
+        try{
+            s.close();
+        }catch(IOException ex){
+            ex.printStackTrace();
+        }
+    }
+
+    public boolean connesso(){
+        return connesso;
+    }
     
 }
