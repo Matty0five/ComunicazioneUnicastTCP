@@ -1,25 +1,28 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class Client {
     private String nome;
     private String colore;
     private Socket s;
-    private BufferedReader lettore;           // lettore del messaggio del client
+    private BufferedReader lettore;            // lettore del messaggio del client
     private BufferedWriter scrittore;          // scrittore del messaggio per il client
     private boolean connesso = true;
+    private Scanner lettoreMessaggio;          // buffer per l'input da tastiera
     
     public Client(String nomeDefault, String coloreDefault) {
         this.nome = nomeDefault;
         this.colore = coloreDefault;
+        this.lettoreMessaggio = new Scanner(System.in);
     }
     
     public void connetti(String nomeServer, int portaServer){
         try {
             s = new Socket(nomeServer, portaServer);
             System.out.println("C1 - Connessione con il server instaurata (fase di connessione con il server)");
-            // scrittore = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-            // lettore = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            scrittore = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+            lettore = new BufferedReader(new InputStreamReader(s.getInputStream()));
             connesso = true;
         } catch (UnknownHostException ex) {
             System.err.println("C1 - Host non risolto");
@@ -31,17 +34,14 @@ public class Client {
     }
     
     public void scrivi(){
-        BufferedReader lettoreMessaggio;                 // buffer per l'input da tastiera
-        String messaggio;                                // il messaggio da mandare al server
+        String messaggio;              // il messaggio da mandare al server
 
         try {
             // richiesta dell'inserimento del messaggio all'utente
-            lettoreMessaggio = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Inserisci un messaggio per il server: ");
-            messaggio = lettoreMessaggio.readLine();
+            messaggio = lettoreMessaggio.nextLine();
             
             // trasmissione del messaggio al server
-            scrittore = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             scrittore.write(messaggio);
             scrittore.newLine();
             scrittore.flush();
@@ -63,7 +63,6 @@ public class Client {
                 
             try{
                 // lettura della risposta del server
-                lettore = new BufferedReader(new InputStreamReader(s.getInputStream()));
                 messaggioServer = lettore.readLine();
 
                 // gestione dei casi in base al contenuto del messaggio

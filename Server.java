@@ -10,9 +10,11 @@ public class Server {
     private BufferedWriter scrittore;           // stream per la scrittura verso il client
     private boolean attivo = true;              // determina lo stato di attività del server
     private boolean connesso = true;            // determina lo stato della connessione col client
+    private Scanner lettoreMessaggio;          // buffer per l'input da tastiera
 
     public Server(int porta) {
         this.porta = porta;
+        this.lettoreMessaggio = new Scanner(System.in);
         try {
             serverSocket = new ServerSocket(this.porta); // Istanzio un oggetto di tipo connection socket
             System.out.println("S1 - Il server è in ascolto");
@@ -33,10 +35,10 @@ public class Server {
             System.out.println("S2 - Connessione stabilita con il client");
             connesso = true;
             
-            /* if(clientSocket != null){
+            if(clientSocket != null){
                 scrittore = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
                 lettore = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));   
-            } */
+            }
         } catch (IOException ex) {
             System.err.println("S2 - Errore nella connessione con il client (fase di connessione)");
             ex.printStackTrace();
@@ -46,8 +48,7 @@ public class Server {
 
     public void scrivi(){
         if(attivo && connesso){
-            Scanner lettoreMessaggio = new Scanner(System.in);          // lettore del messaggio da inviare al client
-            String messaggio;                                                  // messaggio da inviare al client
+            String messaggio;              // il messaggio da mandare al server
 
             try{
                 System.out.println("Risposta per il client: ");
@@ -72,8 +73,7 @@ public class Server {
             }catch(IOException ex){
                 ex.printStackTrace();
             }
-
-            lettoreMessaggio.close();
+            
         }
 
     }
@@ -84,7 +84,6 @@ public class Server {
 
             try{
                 // lettura del messaggio inviato dal client
-                lettore = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 messaggioRicevuto = lettore.readLine();
 
                 if(!messaggioRicevuto.equals("chiudi")){
